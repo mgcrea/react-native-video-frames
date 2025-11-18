@@ -19,17 +19,40 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     _ videoPath: String,
     times: [NSNumber],
     resolver: @escaping RCTPromiseResolveBlock,
-    rejecter _: @escaping RCTPromiseRejectBlock
+    rejecter: @escaping RCTPromiseRejectBlock
   ) {
-    // Normalize path
-    let cleanedPath = videoPath.replacingOccurrences(of: "file://", with: "")
-    let url = URL(fileURLWithPath: cleanedPath)
+    // Early return for empty times array
+    guard !times.isEmpty else {
+      resolver([])
+      return
+    }
+
+    // Defensive path handling
+    let url: URL
+    if videoPath.hasPrefix("file://") {
+      guard let fileURL = URL(string: videoPath) else {
+        rejecter("E_INVALID_URL", "Invalid video file URL: \(videoPath)", nil)
+        return
+      }
+      url = fileURL
+    } else {
+      url = URL(fileURLWithPath: videoPath)
+    }
 
     let asset = AVURLAsset(url: url)
+
+    // Validate asset has valid duration
+    let duration = asset.duration
+    if duration == .zero || CMTIME_IS_INVALID(duration) {
+      rejecter("E_INVALID_ASSET", "Could not load video asset or duration is zero", nil)
+      return
+    }
+
     let generator = AVAssetImageGenerator(asset: asset)
     generator.appliesPreferredTrackTransform = true
-    generator.requestedTimeToleranceBefore = .zero
-    generator.requestedTimeToleranceAfter = .zero
+    // Use default tolerances for better reliability and performance
+    // generator.requestedTimeToleranceBefore = .zero
+    // generator.requestedTimeToleranceAfter = .zero
 
     // Convert ms → CMTime
     let timeValues: [NSValue] = times.map { ms in
@@ -42,25 +65,27 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
       var results: [String] = []
 
       for timeVal in timeValues {
-        let cmTime = timeVal.timeValue
-        do {
-          let imageRef = try generator.copyCGImage(at: cmTime, actualTime: nil)
-          let uiImage = UIImage(cgImage: imageRef)
+        // Use autoreleasepool to keep memory in check for many frames
+        autoreleasepool {
+          let cmTime = timeVal.timeValue
+          do {
+            let imageRef = try generator.copyCGImage(at: cmTime, actualTime: nil)
+            let uiImage = UIImage(cgImage: imageRef)
 
-          guard let data = uiImage.jpegData(compressionQuality: 0.9) else {
-            continue
+            guard let data = uiImage.jpegData(compressionQuality: 0.9) else {
+              return
+            }
+
+            let tmpDir = NSTemporaryDirectory()
+            let fileName = "vf-\(Int(cmTime.seconds * 1000)).jpg"
+            let fileURL = URL(fileURLWithPath: tmpDir).appendingPathComponent(fileName)
+
+            try data.write(to: fileURL, options: .atomic)
+            results.append("file://\(fileURL.path)")
+          } catch {
+            // Skip failed timestamps instead of rejecting everything
+            NSLog("[NativeVideoFrames] frame error at \(cmTime): \(error.localizedDescription)")
           }
-
-          let tmpDir = NSTemporaryDirectory()
-          let fileName = "vf-\(Int(cmTime.seconds * 1000)).jpg"
-          let fileURL = URL(fileURLWithPath: tmpDir).appendingPathComponent(fileName)
-
-          try data.write(to: fileURL, options: .atomic)
-          results.append("file://\(fileURL.path)")
-        } catch {
-          // Skip failed timestamps instead of rejecting everything
-          NSLog("[NativeVideoFrames] frame error at \(cmTime): \(error.localizedDescription)")
-          continue
         }
       }
 
@@ -70,11 +95,13 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     }
   }
 
-  // Required by RCTBridgeModule to set the JS module name if needed; default uses class name.
+  // Required by RCTBridgeModule protocol
+  @objc
   public static func moduleName() -> String! {
     return "NativeVideoFrames"
   }
 
+  @objc
   public static func requiresMainQueueSetup() -> Bool {
     return false
   }
