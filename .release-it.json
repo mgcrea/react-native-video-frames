@@ -6,5 +6,11 @@
   "github": {
     "release": true,
     "releaseName": "v${version}"
+  },
+  "npm": {
+    "publish": true,
+    "publishConfig": {
+      "access": "public"
+    }
   }
 }
