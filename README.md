@@ -1,5 +1,6 @@
 # React Native Video Frames
 
+<!-- markdownlint-disable MD033 -->
 <p align="center">
   <a href="https://www.npmjs.com/package/@mgcrea/react-native-video-frames">
     <img src="https://img.shields.io/npm/v/@mgcrea/react-native-video-frames.svg?style=for-the-badge" alt="npm version" />
@@ -11,6 +12,7 @@
     <img src="https://img.shields.io/github/license/mgcrea/react-native-video-frames.svg?style=for-the-badge" alt="license" />
   </a>
 </p>
+<!-- markdownlint-enable MD033 -->
 
 ## Overview
 
@@ -65,12 +67,12 @@ cd ios && pod install
 ### Basic Example
 
 ```tsx
-import { NativeVideoFrames } from '@mgcrea/react-native-video-frames';
+import { NativeVideoFrames } from "@mgcrea/react-native-video-frames";
 
 // Extract frames at 1s, 2s, and 3s
 const frameUris = await NativeVideoFrames.extractFrames(
-  'file:///path/to/video.mp4',
-  [1000, 2000, 3000] // timestamps in milliseconds
+  "file:///path/to/video.mp4",
+  [1000, 2000, 3000], // timestamps in milliseconds
 );
 
 // frameUris: ['file:///tmp/vf-1000.jpg', 'file:///tmp/vf-2000.jpg', ...]
@@ -79,48 +81,40 @@ const frameUris = await NativeVideoFrames.extractFrames(
 ### With Options
 
 ```tsx
-import { NativeVideoFrames } from '@mgcrea/react-native-video-frames';
+import { NativeVideoFrames } from "@mgcrea/react-native-video-frames";
 
 // Extract frames with custom dimensions and quality
-const frameUris = await NativeVideoFrames.extractFrames(
-  'file:///path/to/video.mp4',
-  [1000, 2000, 3000],
-  {
-    width: 400,    // Optional: specify width
-    height: 300,   // Optional: specify height
-    quality: 0.8,  // Optional: JPEG quality (0.0-1.0, default: 0.9)
-  }
-);
+const frameUris = await NativeVideoFrames.extractFrames("file:///path/to/video.mp4", [1000, 2000, 3000], {
+  width: 400, // Optional: specify width
+  height: 300, // Optional: specify height
+  quality: 0.8, // Optional: JPEG quality (0.0-1.0, default: 0.9)
+});
 ```
 
 ### Complete Integration Example
 
 ```tsx
-import { useState } from 'react';
-import { View, Button, Image, ScrollView } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { NativeVideoFrames } from '@mgcrea/react-native-video-frames';
+import { useState } from "react";
+import { View, Button, Image, ScrollView } from "react-native";
+import { launchImageLibrary } from "react-native-image-picker";
+import { NativeVideoFrames } from "@mgcrea/react-native-video-frames";
 
 function VideoFrameExtractor() {
   const [frames, setFrames] = useState<string[]>([]);
 
   const selectAndExtract = async () => {
     // Pick a video
-    const result = await launchImageLibrary({ mediaType: 'video' });
+    const result = await launchImageLibrary({ mediaType: "video" });
     const videoUri = result.assets?.[0]?.uri;
 
     if (!videoUri) return;
 
     // Extract frames at 1s intervals for first 5 seconds
     const timestamps = [1000, 2000, 3000, 4000, 5000];
-    const frameUris = await NativeVideoFrames.extractFrames(
-      videoUri,
-      timestamps,
-      {
-        width: 400,   // Resize to 400px width
-        quality: 0.85 // Reduce quality for smaller files
-      }
-    );
+    const frameUris = await NativeVideoFrames.extractFrames(videoUri, timestamps, {
+      width: 400, // Resize to 400px width
+      quality: 0.85, // Reduce quality for smaller files
+    });
 
     setFrames(frameUris);
   };
@@ -130,7 +124,7 @@ function VideoFrameExtractor() {
       <Button title="Select Video & Extract Frames" onPress={selectAndExtract} />
       <ScrollView>
         {frames.map((uri, index) => (
-          <Image key={uri} source={{ uri }} style={{ width: '100%', height: 200 }} />
+          <Image key={uri} source={{ uri }} style={{ width: "100%", height: 200 }} />
         ))}
       </ScrollView>
     </View>
@@ -146,18 +140,18 @@ Extracts image frames from a video file at specified timestamps.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `videoPath` | `string` | ✅ | Local file path or `file://` URI to the video |
-| `times` | `number[]` | ✅ | Array of timestamps in milliseconds |
-| `options` | `ExtractFramesOptions` | ❌ | Optional sizing configuration |
+| Parameter   | Type                   | Required | Description                                   |
+| ----------- | ---------------------- | -------- | --------------------------------------------- |
+| `videoPath` | `string`               | ✅       | Local file path or `file://` URI to the video |
+| `times`     | `number[]`             | ✅       | Array of timestamps in milliseconds           |
+| `options`   | `ExtractFramesOptions` | ❌       | Optional sizing configuration                 |
 
 #### Options
 
 ```typescript
 type ExtractFramesOptions = {
-  width?: number;   // Output width in pixels
-  height?: number;  // Output height in pixels
+  width?: number; // Output width in pixels
+  height?: number; // Output height in pixels
   quality?: number; // JPEG compression quality (0.0-1.0, default: 0.9)
 };
 ```
@@ -184,27 +178,23 @@ type ExtractFramesOptions = {
 
 The promise rejects with an error object containing:
 
-| Code | Description |
-|------|-------------|
-| `E_INVALID_URL` | Invalid video file URL |
+| Code              | Description                              |
+| ----------------- | ---------------------------------------- |
+| `E_INVALID_URL`   | Invalid video file URL                   |
 | `E_INVALID_ASSET` | Could not load video or duration is zero |
 
 #### Example
 
 ```typescript
 try {
-  const frames = await NativeVideoFrames.extractFrames(
-    'file:///path/to/video.mp4',
-    [1000, 5000, 10000],
-    {
-      width: 800,
-      quality: 0.95  // Higher quality for important frames
-    }
-  );
-  console.log('Extracted frames:', frames);
+  const frames = await NativeVideoFrames.extractFrames("file:///path/to/video.mp4", [1000, 5000, 10000], {
+    width: 800,
+    quality: 0.95, // Higher quality for important frames
+  });
+  console.log("Extracted frames:", frames);
 } catch (error) {
-  if (error.code === 'E_INVALID_URL') {
-    console.error('Invalid video URL');
+  if (error.code === "E_INVALID_URL") {
+    console.error("Invalid video URL");
   }
 }
 ```
