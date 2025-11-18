@@ -66,5 +66,8 @@
     },
     "includesGeneratedCode": true
   },
-  "packageManager": "pnpm@10.22.0"
+  "packageManager": "pnpm@10.22.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }
