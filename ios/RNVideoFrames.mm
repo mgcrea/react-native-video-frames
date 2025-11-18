@@ -25,11 +25,14 @@ RCT_EXPORT_MODULE(NativeVideoFramesModule)
   return std::make_shared<facebook::react::NativeVideoFramesSpecJSI>(params);
 }
 
-- (nonnull NSNumber *)add:(double)a b:(double)b {
-  // Box doubles into NSNumber to match Swift's @objc signature: add(_:b:)
-  NSNumber *na = @(a);
-  NSNumber *nb = @(b);
-  return [_swiftVideoFrames add:na b:nb];
+- (void)extractFrames:(NSString *)videoPath
+                times:(NSArray *)times
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
+  [_swiftVideoFrames extractFrames:videoPath
+                             times:times
+                          resolver:resolve
+                          rejecter:reject];
 }
 
 @end

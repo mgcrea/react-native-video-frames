@@ -3,7 +3,7 @@ import { TurboModuleRegistry } from "react-native";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface Spec extends TurboModule {
-  add(a: number, b: number): number;
+  extractFrames(videoPath: string, times: number[]): Promise<string[]>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>("NativeVideoFramesModule");
