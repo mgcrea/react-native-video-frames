@@ -19,7 +19,7 @@
 - Leverages native APIs: `AVAssetImageGenerator` (iOS) and `MediaMetadataRetriever` (Android - coming soon)
 - Extract frames at precise timestamps with millisecond accuracy
 - Configure output dimensions while maintaining aspect ratio
-- Save frames as JPEG files with configurable quality
+- Configurable JPEG quality (0.0 - 1.0) for optimal file size vs. quality tradeoff
 - Production-ready with comprehensive error handling
 
 ## Features
@@ -29,7 +29,7 @@
 - **📐 Flexible Sizing** — Configure output width/height with automatic aspect ratio preservation
 - **🔄 Async by Design** — Background processing with Promise-based API
 - **💪 Type-Safe** — Full TypeScript support with exported types
-- **🎨 High Quality** — JPEG output with configurable compression quality
+- **🎨 Quality Control** — Configurable JPEG compression quality (0.0-1.0)
 - **✅ Production Ready** — Comprehensive validation and error handling
 
 ## Installation
@@ -76,18 +76,19 @@ const frameUris = await NativeVideoFrames.extractFrames(
 // frameUris: ['file:///tmp/vf-1000.jpg', 'file:///tmp/vf-2000.jpg', ...]
 ```
 
-### With Size Options
+### With Options
 
 ```tsx
 import { NativeVideoFrames } from '@mgcrea/react-native-video-frames';
 
-// Extract frames with custom dimensions
+// Extract frames with custom dimensions and quality
 const frameUris = await NativeVideoFrames.extractFrames(
   'file:///path/to/video.mp4',
   [1000, 2000, 3000],
   {
-    width: 400,  // Optional: specify width
-    height: 300, // Optional: specify height
+    width: 400,    // Optional: specify width
+    height: 300,   // Optional: specify height
+    quality: 0.8,  // Optional: JPEG quality (0.0-1.0, default: 0.9)
   }
 );
 ```
@@ -115,7 +116,10 @@ function VideoFrameExtractor() {
     const frameUris = await NativeVideoFrames.extractFrames(
       videoUri,
       timestamps,
-      { width: 400 } // Resize to 400px width
+      {
+        width: 400,   // Resize to 400px width
+        quality: 0.85 // Reduce quality for smaller files
+      }
     );
 
     setFrames(frameUris);
@@ -154,6 +158,7 @@ Extracts image frames from a video file at specified timestamps.
 type ExtractFramesOptions = {
   width?: number;   // Output width in pixels
   height?: number;  // Output height in pixels
+  quality?: number; // JPEG compression quality (0.0-1.0, default: 0.9)
 };
 ```
 
@@ -163,6 +168,13 @@ type ExtractFramesOptions = {
 - **Width only**: Height scales proportionally
 - **Height only**: Width scales proportionally
 - **No options**: Original video dimensions
+
+**Quality Behavior:**
+
+- Range: `0.0` (maximum compression, smallest file) to `1.0` (minimum compression, best quality)
+- Default: `0.9` (high quality with reasonable file size)
+- Lower values result in smaller files but reduced image quality
+- Higher values preserve quality but increase file size
 
 #### Returns
 
@@ -184,7 +196,10 @@ try {
   const frames = await NativeVideoFrames.extractFrames(
     'file:///path/to/video.mp4',
     [1000, 5000, 10000],
-    { width: 800 }
+    {
+      width: 800,
+      quality: 0.95  // Higher quality for important frames
+    }
   );
   console.log('Extracted frames:', frames);
 } catch (error) {
@@ -273,7 +288,7 @@ pnpm test
 ## Roadmap
 
 - [ ] Android support using `MediaMetadataRetriever`
-- [ ] Configurable JPEG quality option
+- [x] Configurable JPEG quality option
 - [ ] Support for PNG output format
 - [ ] Batch extraction progress callbacks
 - [ ] Video thumbnail generation helper
