@@ -27,10 +27,21 @@ RCT_EXPORT_MODULE(NativeVideoFramesModule)
 
 - (void)extractFrames:(NSString *)videoPath
                 times:(NSArray *)times
+              options:(JS::NativeVideoFrames::ExtractFramesOptions &)options
               resolve:(RCTPromiseResolveBlock)resolve
                reject:(RCTPromiseRejectBlock)reject {
+  // Convert C++ struct to NSDictionary
+  NSMutableDictionary *optionsDict = [NSMutableDictionary new];
+  if (options.width().has_value()) {
+    optionsDict[@"width"] = @(options.width().value());
+  }
+  if (options.height().has_value()) {
+    optionsDict[@"height"] = @(options.height().value());
+  }
+
   [_swiftVideoFrames extractFrames:videoPath
                              times:times
+                           options:optionsDict.count > 0 ? optionsDict : nil
                           resolver:resolve
                           rejecter:reject];
 }

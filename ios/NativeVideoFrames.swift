@@ -11,13 +11,15 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
    * - Parameters:
    *   - videoPath: Local file path or `file://` URI to the video.
    *   - times: Array of timestamps in milliseconds.
+   *   - options: Optional dictionary with width/height for output dimensions.
    *   - resolver: Promise resolve callback, returns `[String]` of `file://` image paths.
    *   - rejecter: Promise reject callback.
    */
-  @objc(extractFrames:times:resolver:rejecter:)
+  @objc(extractFrames:times:options:resolver:rejecter:)
   public func extractFrames(
     _ videoPath: String,
     times: [NSNumber],
+    options: NSDictionary?,
     resolver: @escaping RCTPromiseResolveBlock,
     rejecter: @escaping RCTPromiseRejectBlock
   ) {
@@ -53,6 +55,24 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     // Use default tolerances for better reliability and performance
     // generator.requestedTimeToleranceBefore = .zero
     // generator.requestedTimeToleranceAfter = .zero
+
+    // Configure output dimensions if options provided
+    if let options = options {
+      let width = options["width"] as? NSNumber
+      let height = options["height"] as? NSNumber
+
+      if let w = width, let h = height {
+        // Both dimensions provided - set as maximum size (maintains aspect ratio)
+        generator.maximumSize = CGSize(width: w.doubleValue, height: h.doubleValue)
+      } else if let w = width {
+        // Only width provided - height will scale proportionally
+        generator.maximumSize = CGSize(width: w.doubleValue, height: CGFloat.greatestFiniteMagnitude)
+      } else if let h = height {
+        // Only height provided - width will scale proportionally
+        generator.maximumSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: h.doubleValue)
+      }
+      // If no width or height, use default (original dimensions)
+    }
 
     // Convert ms → CMTime
     let timeValues: [NSValue] = times.map { ms in
