@@ -4,6 +4,7 @@ import { TurboModuleRegistry } from "react-native";
 export type ExtractFramesOptions = {
   width?: number;
   height?: number;
+  quality?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

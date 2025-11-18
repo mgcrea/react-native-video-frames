@@ -38,6 +38,9 @@ RCT_EXPORT_MODULE(NativeVideoFramesModule)
   if (options.height().has_value()) {
     optionsDict[@"height"] = @(options.height().value());
   }
+  if (options.quality().has_value()) {
+    optionsDict[@"quality"] = @(options.quality().value());
+  }
 
   [_swiftVideoFrames extractFrames:videoPath
                              times:times

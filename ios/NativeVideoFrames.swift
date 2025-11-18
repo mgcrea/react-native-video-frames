@@ -56,6 +56,14 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     // generator.requestedTimeToleranceBefore = .zero
     // generator.requestedTimeToleranceAfter = .zero
 
+    // Extract quality option (default: 0.9)
+    let quality: CGFloat
+    if let options = options, let q = options["quality"] as? NSNumber {
+      quality = CGFloat(q.doubleValue)
+    } else {
+      quality = 0.9
+    }
+
     // Configure output dimensions if options provided
     if let options = options {
       let width = options["width"] as? NSNumber
@@ -92,7 +100,7 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
             let imageRef = try generator.copyCGImage(at: cmTime, actualTime: nil)
             let uiImage = UIImage(cgImage: imageRef)
 
-            guard let data = uiImage.jpegData(compressionQuality: 0.9) else {
+            guard let data = uiImage.jpegData(compressionQuality: quality) else {
               return
             }
 
