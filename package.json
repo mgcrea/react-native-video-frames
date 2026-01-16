@@ -31,8 +31,8 @@
     "prepare": "npm run build"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=17.0.0",
+    "react-native": ">=0.74.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.3",
