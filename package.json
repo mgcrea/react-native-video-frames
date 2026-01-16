@@ -1,6 +1,6 @@
 {
   "name": "@mgcrea/react-native-video-frames",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "React Native module to extract video frames using AVAssetImageGenerator (iOS) and MediaMetadataRetriever (Android)",
   "author": "Olivier Louvignes <olivier@mgcrea.io> (https://github.com/mgcrea)",
   "homepage": "https://github.com/mgcrea/react-native-video-frames#readme",
