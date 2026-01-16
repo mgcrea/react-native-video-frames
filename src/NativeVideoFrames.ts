@@ -5,6 +5,7 @@ export type ExtractFramesOptions = {
   width?: number;
   height?: number;
   quality?: number;
+  precise?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

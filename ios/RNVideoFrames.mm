@@ -41,6 +41,9 @@ RCT_EXPORT_MODULE(NativeVideoFramesModule)
   if (options.quality().has_value()) {
     optionsDict[@"quality"] = @(options.quality().value());
   }
+  if (options.precise().has_value()) {
+    optionsDict[@"precise"] = @(options.precise().value());
+  }
 
   [_swiftVideoFrames extractFrames:videoPath
                              times:times

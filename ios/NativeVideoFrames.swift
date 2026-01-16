@@ -58,9 +58,14 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
 
     let generator = AVAssetImageGenerator(asset: asset)
     generator.appliesPreferredTrackTransform = true
-    // Use default tolerances for better reliability and performance
-    // generator.requestedTimeToleranceBefore = .zero
-    // generator.requestedTimeToleranceAfter = .zero
+
+    // Configure time tolerances based on precise option
+    // When precise=true, use zero tolerance to get exact frames (slower, may fail on some videos)
+    // When precise=false (default), use default tolerances which snap to nearest keyframe (faster)
+    if let options = options, let precise = options["precise"] as? Bool, precise {
+      generator.requestedTimeToleranceBefore = .zero
+      generator.requestedTimeToleranceAfter = .zero
+    }
 
     // Extract and validate quality option (default: 0.9, range: 0.0-1.0)
     let quality: CGFloat
