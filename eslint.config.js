@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import baseConfig from "@mgcrea/eslint-config-react-native";
 
 const config = [
   ...baseConfig,
   {
-    rules: {
-    },
+    rules: {},
   },
   {
     ignores: [".idea/**", "example/**", "test/**"],
