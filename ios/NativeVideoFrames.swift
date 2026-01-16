@@ -43,9 +43,15 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
 
     let asset = AVURLAsset(url: url)
 
+    // Validate asset has video tracks
+    guard asset.tracks(withMediaType: .video).count > 0 else {
+      rejecter("E_INVALID_ASSET", "Video file contains no video tracks", nil)
+      return
+    }
+
     // Validate asset has valid duration
     let duration = asset.duration
-    if duration == .zero || CMTIME_IS_INVALID(duration) {
+    guard CMTIME_IS_VALID(duration) && duration.value > 0 else {
       rejecter("E_INVALID_ASSET", "Could not load video asset or duration is zero", nil)
       return
     }
@@ -56,10 +62,15 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     // generator.requestedTimeToleranceBefore = .zero
     // generator.requestedTimeToleranceAfter = .zero
 
-    // Extract quality option (default: 0.9)
+    // Extract and validate quality option (default: 0.9, range: 0.0-1.0)
     let quality: CGFloat
     if let options = options, let q = options["quality"] as? NSNumber {
-      quality = CGFloat(q.doubleValue)
+      let qualityValue = q.doubleValue
+      guard qualityValue >= 0.0 && qualityValue <= 1.0 else {
+        rejecter("E_INVALID_ARGS", "Quality must be between 0.0 and 1.0, got \(qualityValue)", nil)
+        return
+      }
+      quality = CGFloat(qualityValue)
     } else {
       quality = 0.9
     }
@@ -68,6 +79,23 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     if let options = options {
       let width = options["width"] as? NSNumber
       let height = options["height"] as? NSNumber
+
+      // Validate dimensions if provided (must be positive and reasonable)
+      let maxDimension: Double = 16000
+      if let w = width {
+        let widthValue = w.doubleValue
+        guard widthValue > 0 && widthValue <= maxDimension else {
+          rejecter("E_INVALID_ARGS", "Width must be between 1 and \(Int(maxDimension)), got \(widthValue)", nil)
+          return
+        }
+      }
+      if let h = height {
+        let heightValue = h.doubleValue
+        guard heightValue > 0 && heightValue <= maxDimension else {
+          rejecter("E_INVALID_ARGS", "Height must be between 1 and \(Int(maxDimension)), got \(heightValue)", nil)
+          return
+        }
+      }
 
       if let w = width, let h = height {
         // Both dimensions provided - set as maximum size (maintains aspect ratio)
@@ -91,33 +119,44 @@ public class NativeVideoFrames: NSObject, RCTBridgeModule {
     // Heavy-ish work: off main thread
     DispatchQueue.global(qos: .userInitiated).async {
       var results: [String] = []
+      var failedTimestamps: [(ms: Int, reason: String)] = []
 
       for timeVal in timeValues {
         // Use autoreleasepool to keep memory in check for many frames
         autoreleasepool {
           let cmTime = timeVal.timeValue
+          let timestampMs = Int(cmTime.seconds * 1000)
           do {
             let imageRef = try generator.copyCGImage(at: cmTime, actualTime: nil)
             let uiImage = UIImage(cgImage: imageRef)
 
             guard let data = uiImage.jpegData(compressionQuality: quality) else {
+              failedTimestamps.append((ms: timestampMs, reason: "Failed to encode JPEG"))
               return
             }
 
             let tmpDir = NSTemporaryDirectory()
-            let fileName = "vf-\(Int(cmTime.seconds * 1000)).jpg"
+            let fileName = "vf-\(timestampMs).jpg"
             let fileURL = URL(fileURLWithPath: tmpDir).appendingPathComponent(fileName)
 
             try data.write(to: fileURL, options: .atomic)
-            results.append("file://\(fileURL.path)")
+            results.append(fileURL.absoluteString)
           } catch {
-            // Skip failed timestamps instead of rejecting everything
-            NSLog("[NativeVideoFrames] frame error at \(cmTime): \(error.localizedDescription)")
+            // Track failed timestamps for error reporting
+            failedTimestamps.append((ms: timestampMs, reason: error.localizedDescription))
+            NSLog("[NativeVideoFrames] frame error at \(timestampMs)ms: \(error.localizedDescription)")
           }
         }
       }
 
       DispatchQueue.main.async {
+        // If all frames failed, reject with details
+        if results.isEmpty && !failedTimestamps.isEmpty {
+          let reasons = failedTimestamps.prefix(5).map { "\($0.ms)ms: \($0.reason)" }.joined(separator: "; ")
+          let suffix = failedTimestamps.count > 5 ? " (and \(failedTimestamps.count - 5) more)" : ""
+          rejecter("E_EXTRACTION_FAILED", "Failed to extract all \(failedTimestamps.count) frames: \(reasons)\(suffix)", nil)
+          return
+        }
         resolver(results)
       }
     }
