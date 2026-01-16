@@ -39,7 +39,7 @@
 ### Prerequisites
 
 - React Native >= 0.74
-- iOS >= 13.0
+- iOS >= 14.0
 - Node.js >= 18
 
 ### Install Package
@@ -178,10 +178,12 @@ type ExtractFramesOptions = {
 
 The promise rejects with an error object containing:
 
-| Code              | Description                              |
-| ----------------- | ---------------------------------------- |
-| `E_INVALID_URL`   | Invalid video file URL                   |
-| `E_INVALID_ASSET` | Could not load video or duration is zero |
+| Code                  | Description                                                |
+| --------------------- | ---------------------------------------------------------- |
+| `E_INVALID_URL`       | Invalid video file URL                                     |
+| `E_INVALID_ASSET`     | Could not load video, no video tracks, or zero duration    |
+| `E_INVALID_ARGS`      | Invalid options (quality out of range, invalid dimensions) |
+| `E_EXTRACTION_FAILED` | All frame extractions failed                               |
 
 #### Example
 
