@@ -13,17 +13,19 @@
     "*.podspec",
     "src",
     "dist",
-    "ios"
+    "ios",
+    "android"
   ],
   "scripts": {
     "dev": "cd example; npm run dev",
-    "build": "npm run build:babel && npm run build:types; npm run codegen:ios",
+    "build": "npm run build:babel && npm run build:types && npm run codegen:ios && npm run codegen:android",
     "build:babel": "babel src --out-dir dist --extensions \".ts,.tsx,.js,.jsx\" --copy-files",
     "build:types": "tsc --emitDeclarationOnly",
     "install:ios": "cd example; npm run install:ios",
     "open:ios": "cd example; npm run open:ios",
     "react-native": "react-native",
-    "codegen:ios": "rm -rf ios/generated; react-native codegen --source library --platform ios --outputPath ios/generated",
+    "codegen:ios": "rm -rf ios/generated && react-native codegen --source library --platform ios --outputPath ios/generated",
+    "codegen:android": "rm -rf android/generated && react-native codegen --source library --platform android --outputPath android/generated",
     "lint": "eslint .",
     "check": "tsc --noEmit",
     "spec": "NODE_OPTIONS=--experimental-require-module jest",
@@ -61,8 +63,10 @@
     "type": "modules",
     "jsSrcsDir": "src",
     "outputDir": {
-      "ios": "ios/generated",
-      "android": "android/generated"
+      "ios": "ios/generated"
+    },
+    "android": {
+      "javaPackageName": "com.facebook.fbreact.specs"
     },
     "includesGeneratedCode": true
   },
