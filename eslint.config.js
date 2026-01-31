@@ -7,7 +7,7 @@ const config = [
     rules: {},
   },
   {
-    ignores: [".idea/**", "example/**", "test/**"],
+    ignores: [".idea/**", "example/**", "test/**", "*.cjs"],
   },
   {
     languageOptions: {
