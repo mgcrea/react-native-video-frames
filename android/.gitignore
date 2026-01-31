@@ -1,6 +1,5 @@
 # Android build artifacts
 /build/
-/generated/
 
 # Gradle
 .gradle/
