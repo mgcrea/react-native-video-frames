@@ -4,8 +4,7 @@ module.exports = {
     platforms: {
       android: {
         componentDescriptors: [],
-        // Point to codegen-generated JNI files
-        cmakeListsPath: "generated/jni/CMakeLists.txt",
+        cmakeListsPath: "src/main/jni/CMakeLists.txt",
       },
       ios: {},
     },
