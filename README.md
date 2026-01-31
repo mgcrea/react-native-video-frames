@@ -18,7 +18,7 @@
 
 **React Native Video Frames** is a lightweight native module for extracting image frames from video files at specified timestamps. Built with React Native's new Turbo Module architecture for optimal performance.
 
-- Leverages native APIs: `AVAssetImageGenerator` (iOS) and `MediaMetadataRetriever` (Android - coming soon)
+- Leverages native APIs: `AVAssetImageGenerator` (iOS) and `MediaMetadataRetriever` (Android)
 - Extract frames at precise timestamps with millisecond accuracy
 - Configure output dimensions while maintaining aspect ratio
 - Configurable JPEG quality (0.0 - 1.0) for optimal file size vs. quality tradeoff
@@ -40,6 +40,7 @@
 
 - React Native >= 0.74
 - iOS >= 14.0
+- Android SDK >= 24 (Android 7.0)
 - Node.js >= 18
 
 ### Install Package
@@ -60,6 +61,14 @@ yarn add @mgcrea/react-native-video-frames
 
 ```bash
 cd ios && pod install
+```
+
+### Android Setup
+
+Android uses autolinking, so no additional setup is required. Just rebuild your app:
+
+```bash
+cd android && ./gradlew assembleDebug
 ```
 
 ## Usage
@@ -153,6 +162,7 @@ type ExtractFramesOptions = {
   width?: number; // Output width in pixels
   height?: number; // Output height in pixels
   quality?: number; // JPEG compression quality (0.0-1.0, default: 0.9)
+  precise?: boolean; // Extract exact frames vs nearest keyframe (default: false)
 };
 ```
 
@@ -169,6 +179,12 @@ type ExtractFramesOptions = {
 - Default: `0.9` (high quality with reasonable file size)
 - Lower values result in smaller files but reduced image quality
 - Higher values preserve quality but increase file size
+
+**Precise Mode:**
+
+- `false` (default): Fast extraction, snaps to nearest keyframe
+- `true`: Exact frame extraction at specified timestamp (slower)
+- On Android, precise mode requires API 28+ (`OPTION_CLOSEST`); falls back to keyframe on older devices
 
 #### Returns
 
@@ -235,6 +251,25 @@ This library uses React Native's **new Turbo Module architecture** for optimal p
 - **Memory Management** — `autoreleasepool` prevents memory buildup during batch extraction
 - **Error Handling** — Gracefully skips failed frames instead of rejecting the entire operation
 
+### Android Implementation
+
+**Kotlin TurboModule:**
+
+1. **TypeScript Layer** — Same interface as iOS
+2. **Codegen-Generated C++ Bridge** — Automatically generated JNI bindings
+3. **Kotlin Implementation** ([android/src/main/java/io/mgcrea/rnvideoframes/NativeVideoFramesModule.kt](android/src/main/java/io/mgcrea/rnvideoframes/NativeVideoFramesModule.kt))
+   - Uses `MediaMetadataRetriever` for frame extraction
+   - Background processing with `ExecutorService`
+   - Memory-efficient with `bitmap.recycle()`
+
+**Key Implementation Details:**
+
+- **Aspect Ratio Preservation** — Calculates target dimensions maintaining original ratio
+- **Efficient Scaling** — Uses `getScaledFrameAtTime()` on API 27+ for native scaling
+- **Precise Mode** — `OPTION_CLOSEST` (API 28+) for exact frames, `OPTION_CLOSEST_SYNC` fallback
+- **URI Support** — Handles `file://`, `content://`, and absolute paths
+- **Memory Management** — Explicit `bitmap.recycle()` after each frame to prevent OOM
+
 ## Development
 
 ### Setup
@@ -262,6 +297,10 @@ pnpm dev
 
 # In another terminal, run iOS
 pnpm run install:ios
+
+# Or run Android
+cd example/android && ./gradlew assembleDebug
+adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ### Testing
@@ -279,8 +318,9 @@ pnpm test
 
 ## Roadmap
 
-- [ ] Android support using `MediaMetadataRetriever`
+- [x] Android support using `MediaMetadataRetriever`
 - [x] Configurable JPEG quality option
+- [x] Precise frame extraction mode
 - [ ] Support for PNG output format
 - [ ] Batch extraction progress callbacks
 - [ ] Video thumbnail generation helper
