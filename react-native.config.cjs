@@ -3,8 +3,8 @@ module.exports = {
   dependency: {
     platforms: {
       android: {
-        componentDescriptors: [],
-        cmakeListsPath: "src/main/jni/CMakeLists.txt",
+        // Pure Kotlin TurboModule - no CMake/C++ needed
+        cmakeListsPath: null,
       },
       ios: {},
     },

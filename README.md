@@ -253,10 +253,10 @@ This library uses React Native's **new Turbo Module architecture** for optimal p
 
 ### Android Implementation
 
-**Kotlin TurboModule:**
+**Pure Kotlin TurboModule:**
 
 1. **TypeScript Layer** — Same interface as iOS
-2. **Codegen-Generated C++ Bridge** — Automatically generated JNI bindings
+2. **Codegen-Generated Java Spec** — Abstract base class for the module
 3. **Kotlin Implementation** ([android/src/main/java/io/mgcrea/rnvideoframes/NativeVideoFramesModule.kt](android/src/main/java/io/mgcrea/rnvideoframes/NativeVideoFramesModule.kt))
    - Uses `MediaMetadataRetriever` for frame extraction
    - Background processing with `ExecutorService`
